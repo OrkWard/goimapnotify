@@ -24,6 +24,7 @@ This application is mostly compatible with the configuration of [imapnotify made
 configurations:
     -
         host: example.com
+        proxy: socks5://127.0.0.1:1080
         port: 143
         tls: true
         tlsOptions:
@@ -80,6 +81,7 @@ On first start, the application will run `onNewMail` and `onNewMailPost` and the
 - `onDeletedMail`: is an executable or script to run when mail has been delete.
 - `onDeletedMailPost`: is an executable or script to run after `onDeletedMail` has ran.
 - `hostCMD`: is an executable or script that retrieves your host from somewhere, we cannot pass arguments to this command from `Stdin`.
+- `proxy`: optional SOCKS5 proxy URL. Both `socks5://` and `socks5h://` are accepted, including optional URL-encoded username/password authentication. The proxy resolves IMAP hostnames.
 - `usernameCMD`: is an executable or script that retrieves your username from somewhere, we cannot pass arguments to this command from `Stdin`.
 - `passwordCMD`: is an executable or script that retrieves your password from somewhere, we cannot pass arguments to this command from `Stdin`.
   > ⚠️ **Security**: Commands run via `passwordCMD`, `usernameCMD`, and `hostCMD` are executed through a shell (`sh -c`). Avoid embedding secrets literally in the command — use an external secret manager (e.g., `pass`, `gopass`, `oauth2l`) so credentials are not visible in the process list (`/proc/PID/cmdline`).
@@ -90,6 +92,7 @@ On first start, the application will run `onNewMail` and `onNewMailPost` and the
 - `enableIDCommand`: Tell goimapotify that your server needs (and supports!) the ID command (see shackra/goimapnotify#58 shackra/goimapnotify#57; the servers in those tickets did not support ID and they responded with a non-standard error message, causing goimapnotify to fail)
 
 The application will use TLS as long as the IMAP server advertises this capability. **Certificate verification is enabled by default** — set `rejectUnauthorized` to `false` only if you must connect to a server with a self-signed or untrusted certificate.
+SOCKS5 transport works with unencrypted IMAP, STARTTLS, and implicit TLS; TLS is still negotiated end-to-end with the IMAP server.
 To enable TLS connection, set `tls` as `true` and `starttls` as `false`
 
 > ⚠️ **Windows users**: On Windows, the `onNewMail`/`onChangedMail`/etc. command strings use `cmd /c` for execution, and mailbox names substituted via `%s` are **not** quoted. Avoid mailbox names containing shell metacharacters (`&`, `|`, `;`, etc.).

@@ -18,12 +18,17 @@ package imap
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
+	"net"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
+	xproxy "golang.org/x/net/proxy"
 
 	"gitlab.com/shackra/goimapnotify/internal/config"
 )
@@ -84,8 +89,10 @@ type ClientFactory func(conf config.NotifyConfig, retries int) (IMAPClientInterf
 // It allows dependency injection for testing purposes.
 type IdleClientFactory func(client IMAPClientInterface) IdleClientInterface
 
-// defaultDialer implements IMAPDialer using the real go-imap client
-type defaultDialer struct{}
+// defaultDialer implements IMAPDialer using the real go-imap client.
+type defaultDialer struct {
+	dialer client.Dialer
+}
 
 // clientWrapper wraps *client.Client to implement IMAPClientInterface
 type clientWrapper struct {
@@ -94,7 +101,7 @@ type clientWrapper struct {
 
 // Dial connects to an IMAP server without TLS
 func (d *defaultDialer) Dial(addr string) (IMAPClientInterface, error) {
-	c, err := client.Dial(addr)
+	c, err := client.DialWithDialer(d.dialer, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -103,16 +110,44 @@ func (d *defaultDialer) Dial(addr string) (IMAPClientInterface, error) {
 
 // DialTLS connects to an IMAP server with TLS
 func (d *defaultDialer) DialTLS(addr string, config *tls.Config) (IMAPClientInterface, error) {
-	c, err := client.DialTLS(addr, config)
+	c, err := client.DialWithDialerTLS(d.dialer, addr, config)
 	if err != nil {
 		return nil, err
 	}
 	return &clientWrapper{c}, nil
 }
 
-// DefaultDialer returns the default IMAPDialer that uses the real go-imap client
+// DefaultDialer returns the default IMAPDialer that connects directly.
 func DefaultDialer() IMAPDialer {
-	return &defaultDialer{}
+	return &defaultDialer{dialer: new(net.Dialer)}
+}
+
+// NewDialer returns an IMAP dialer using the configured SOCKS5 proxy.
+// An empty proxy URL selects a direct connection.
+func NewDialer(proxyURL string) (IMAPDialer, error) {
+	if proxyURL == "" {
+		return DefaultDialer(), nil
+	}
+
+	u, err := url.Parse(proxyURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse proxy URL: %w", err)
+	}
+
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "socks5" && scheme != "socks5h" {
+		return nil, fmt.Errorf("unsupported proxy scheme %q; expected socks5 or socks5h", u.Scheme)
+	}
+	if u.Hostname() == "" {
+		return nil, fmt.Errorf("proxy URL must include a host")
+	}
+
+	dialer, err := xproxy.FromURL(u, xproxy.Direct)
+	if err != nil {
+		return nil, fmt.Errorf("configure proxy: %w", err)
+	}
+
+	return &defaultDialer{dialer: dialer}, nil
 }
 
 // GetUnderlyingClient returns the underlying *client.Client from a clientWrapper.

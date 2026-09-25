@@ -46,9 +46,14 @@ type IMAPIDLEClient struct {
 }
 
 // NewClient creates a new IMAP client with the given configuration.
-// This is a convenience wrapper around NewClientWithDialer that uses the default dialer.
+// This is a convenience wrapper around NewClientWithDialer that configures the account's dialer.
 func NewClient(conf config.NotifyConfig, retries int) (*client.Client, error) {
-	c, err := NewClientWithDialer(DefaultDialer(), conf, retries)
+	dialer, err := NewDialer(conf.Proxy)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := NewClientWithDialer(dialer, conf, retries)
 	if err != nil {
 		return nil, err
 	}

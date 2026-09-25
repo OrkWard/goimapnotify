@@ -57,6 +57,7 @@ type Configuration struct {
 type ConfigurationLegacy struct {
 	Host              string           `yaml:"host"              json:"host"`
 	HostCMD           string           `yaml:"hostCMD"           json:"hostCMD"`
+	Proxy             string           `yaml:"proxy"             json:"proxy"`
 	Port              int              `yaml:"port"              json:"port"`
 	TLS               bool             `yaml:"tls"               json:"tls"`
 	TLSOptions        TLSOptionsStruct `yaml:"tlsOptions"        json:"tlsOptions"`
@@ -80,6 +81,7 @@ type ConfigurationLegacy struct {
 type NotifyConfig struct {
 	Host              string           `yaml:"host"              json:"host"`
 	HostCMD           string           `yaml:"hostCMD"           json:"hostCMD"`
+	Proxy             string           `yaml:"proxy"             json:"proxy"`
 	Port              int              `yaml:"port"              json:"port"`
 	TLS               bool             `yaml:"tls"               json:"tls"`
 	TLSOptions        TLSOptionsStruct `yaml:"tlsOptions"        json:"tlsOptions"`
@@ -163,6 +165,7 @@ func LegacyConverter(conf ConfigurationLegacy) []NotifyConfig {
 	var c NotifyConfig
 	c.Host = conf.Host
 	c.HostCMD = conf.HostCMD
+	c.Proxy = conf.Proxy
 	c.Port = conf.Port
 	c.TLS = conf.TLS
 	c.TLSOptions = conf.TLSOptions

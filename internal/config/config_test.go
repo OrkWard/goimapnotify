@@ -177,6 +177,7 @@ func TestLegacyConverter(t *testing.T) {
 	legacy := ConfigurationLegacy{
 		Host:    "imap.example.com",
 		HostCMD: "echo imap.example.com",
+		Proxy:   "socks5://127.0.0.1:1080",
 		Port:    993,
 		TLS:     true,
 		TLSOptions: TLSOptionsStruct{
@@ -213,6 +214,9 @@ func TestLegacyConverter(t *testing.T) {
 	}
 	if conf.HostCMD != legacy.HostCMD {
 		t.Errorf("HostCMD = %q, want %q", conf.HostCMD, legacy.HostCMD)
+	}
+	if conf.Proxy != legacy.Proxy {
+		t.Errorf("Proxy = %q, want %q", conf.Proxy, legacy.Proxy)
 	}
 	if conf.Port != legacy.Port {
 		t.Errorf("Port = %d, want %d", conf.Port, legacy.Port)
@@ -563,6 +567,7 @@ func TestSetFromConfig(t *testing.T) {
 func TestNotifyConfig_JSONSerialization(t *testing.T) {
 	original := NotifyConfig{
 		Host:     "imap.example.com",
+		Proxy:    "socks5://127.0.0.1:1080",
 		Port:     993,
 		TLS:      true,
 		Username: "user@example.com",
@@ -590,6 +595,9 @@ func TestNotifyConfig_JSONSerialization(t *testing.T) {
 	if result.Host != original.Host {
 		t.Errorf("Host = %q, want %q", result.Host, original.Host)
 	}
+	if result.Proxy != original.Proxy {
+		t.Errorf("Proxy = %q, want %q", result.Proxy, original.Proxy)
+	}
 	if result.Port != original.Port {
 		t.Errorf("Port = %d, want %d", result.Port, original.Port)
 	}
@@ -605,6 +613,7 @@ func TestNotifyConfig_JSONSerialization(t *testing.T) {
 func TestNotifyConfig_YAMLSerialization(t *testing.T) {
 	original := NotifyConfig{
 		Host:     "imap.example.com",
+		Proxy:    "socks5://127.0.0.1:1080",
 		Port:     993,
 		TLS:      true,
 		Username: "user@example.com",
@@ -634,6 +643,9 @@ func TestNotifyConfig_YAMLSerialization(t *testing.T) {
 	// Verify fields
 	if result.Host != original.Host {
 		t.Errorf("Host = %q, want %q", result.Host, original.Host)
+	}
+	if result.Proxy != original.Proxy {
+		t.Errorf("Proxy = %q, want %q", result.Proxy, original.Proxy)
 	}
 	if result.Port != original.Port {
 		t.Errorf("Port = %d, want %d", result.Port, original.Port)
@@ -815,6 +827,7 @@ func TestConfigurationLegacy_AllFields(t *testing.T) {
 	legacy := ConfigurationLegacy{
 		Host:              "imap.example.com",
 		HostCMD:           "echo host",
+		Proxy:             "socks5://127.0.0.1:1080",
 		Port:              993,
 		TLS:               true,
 		TLSOptions:        TLSOptionsStruct{RejectUnauthorized: boolPtr(true), STARTTLS: true},
@@ -856,6 +869,7 @@ func TestNotifyConfig_AllFields(t *testing.T) {
 	conf := NotifyConfig{
 		Host:              "imap.example.com",
 		HostCMD:           "echo host",
+		Proxy:             "socks5://127.0.0.1:1080",
 		Port:              993,
 		TLS:               true,
 		TLSOptions:        TLSOptionsStruct{RejectUnauthorized: boolPtr(true), STARTTLS: true},
